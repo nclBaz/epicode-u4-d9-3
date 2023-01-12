@@ -4,6 +4,8 @@ import listEndpoints from "express-list-endpoints"
 import cors from "cors"
 import { join } from "path"
 import createHttpError from "http-errors"
+import swagger from "swagger-ui-express"
+import yaml from "yamljs"
 import usersRouter from "./api/users/index.js"
 import booksRouter from "./api/books/index.js"
 import filesRouter from "./api/files/index.js"
@@ -19,6 +21,7 @@ const server = express()
 const port = process.env.PORT
 
 const publicFolderPath = join(process.cwd(), "./public")
+const yamlFile = yaml.load(join(process.cwd(), "./src/docs/apiDocs.yml"))
 
 // ************************************** CORS *******************
 
@@ -78,6 +81,7 @@ server.use(express.json()) // If you do not add this line here BEFORE the endpoi
 server.use("/users", loggerMiddleware, usersRouter) // All users related endpoints will share the same /users prefix in their urls
 server.use("/books", loggerMiddleware, booksRouter)
 server.use("/files", loggerMiddleware, filesRouter)
+server.use("/docs", swagger.serve, swagger.setup(yamlFile))
 
 // ****************** ERROR HANDLERS ****************
 server.use(badRequestHandler) // 400
