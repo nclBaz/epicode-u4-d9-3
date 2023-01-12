@@ -16,6 +16,7 @@ import { fileURLToPath } from "url" // CORE MODULE
 import { dirname, join } from "path" // CORE MODULE
 import uniqid from "uniqid" // 3RD PARTY MODULE (npm i uniqid)
 import { getUsers } from "../../lib/fs-tools.js"
+import { sendRegistrationEmail } from "../../lib/email-tools.js"
 
 const usersRouter = express.Router() // an Express Router is a set of similar endpoints grouped in the same collection
 
@@ -113,6 +114,19 @@ usersRouter.delete("/:userId", (req, res) => {
 
   // 4. Send back a proper response
   res.send()
+})
+
+usersRouter.post("/register", async (req, res, next) => {
+  try {
+    // 1. Receive user's data in req.body
+    const { email } = req.body
+    // 2. Save new user in db
+    // 3. Send email to new user
+    await sendRegistrationEmail(email)
+    res.send()
+  } catch (error) {
+    next(error)
+  }
 })
 
 export default usersRouter // Please do not forget to export!
