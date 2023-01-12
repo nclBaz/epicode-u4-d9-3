@@ -13,7 +13,7 @@ import {
   getBooksJsonReadableStream,
   getBooks,
 } from "../../lib/fs-tools.js"
-import { getPDFReadableStream } from "../../lib/pdf-tools.js"
+import { asyncPDFGeneration, getPDFReadableStream } from "../../lib/pdf-tools.js"
 
 const filesRouter = express.Router()
 
@@ -101,6 +101,7 @@ filesRouter.get("/booksPDF", async (req, res, next) => {
   const destination = res
   pipeline(source, destination, err => {
     if (err) console.log(err)
+    else console.log("STREAM ENDED SUCCESSFULLY!")
   })
 })
 
@@ -114,6 +115,28 @@ filesRouter.get("/booksCSV", (req, res, next) => {
     pipeline(source, transform, destination, err => {
       if (err) console.log(err)
     })
+  } catch (error) {
+    next(error)
+  }
+})
+
+filesRouter.get("/asyncPDF", async (req, res, next) => {
+  try {
+    const books = await getBooks()
+
+    /*   const source = getPDFReadableStream(books)
+  const destination = fs.createWriteStream()
+
+  pipeline(source, destination, err => {
+    if(err) console.log(err)
+    else sendEmail(file)
+  }) */
+    // 1. Generate the pdf by using the stream approach
+    // 2. Wait for it to be completed
+    await asyncPDFGeneration(books)
+    // 3. Use the generated file somehow (smt like send an email containing the pdf as an attachment)
+    // await sendEmailWithAttachment()
+    res.send()
   } catch (error) {
     next(error)
   }
