@@ -5,6 +5,7 @@ import { v2 as cloudinary } from "cloudinary"
 import { CloudinaryStorage } from "multer-storage-cloudinary"
 import { pipeline } from "stream"
 import { createGzip } from "zlib"
+import json2csv from "json2csv"
 import {
   saveUsersAvatars,
   getUsers,
@@ -92,7 +93,7 @@ filesRouter.get("/booksJSON", (req, res, next) => {
   }
 })
 
-filesRouter.get("/pdf", async (req, res, next) => {
+filesRouter.get("/booksPDF", async (req, res, next) => {
   res.setHeader("Content-Disposition", "attachment; filename=test.pdf")
 
   const books = await getBooks()
@@ -101,6 +102,21 @@ filesRouter.get("/pdf", async (req, res, next) => {
   pipeline(source, destination, err => {
     if (err) console.log(err)
   })
+})
+
+filesRouter.get("/booksCSV", (req, res, next) => {
+  try {
+    res.setHeader("Content-Disposition", "attachment; filename=books.csv")
+    // SOURCE (readable stream on books.json) --> TRANSFORM (json into csv) --> DESTINATION (response)
+    const source = getBooksJsonReadableStream()
+    const transform = new json2csv.Transform({ fields: ["asin", "title", "category"] })
+    const destination = res
+    pipeline(source, transform, destination, err => {
+      if (err) console.log(err)
+    })
+  } catch (error) {
+    next(error)
+  }
 })
 
 export default filesRouter
